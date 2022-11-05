@@ -1,10 +1,41 @@
 <?xml version="1.0" ?>
 
 <launch>
-  <arg name="gui" default="True" />
-  <param name="robot_description" command="$(find xacro)/xacro $(find robotiq_2f_c2_gripper_visualization)/urdf/robotiq_c2_model.xacro" />
+  <arg name="gui" default="false" />
   <param name="use_gui" value="$(arg gui)"/>
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  <arg name="paused" default="false" />
+  <arg name="use_sim_time" default="true" />
+  <arg name="headless" default="false" />
+  <arg name="debug" default="false" />
+  <arg name="rviz" default="true"/> 
+  
+  <group ns="/">
+  <!-- We reuse the logic in empty_world.launch, changing only the name of the world to be launched -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="paused" value="$(arg paused)" />
+      <arg name="use_sim_time" value="$(arg use_sim_time)" />
+      <arg name="gui" value="$(arg gui)" />
+      <arg name="headless" value="$(arg headless)" />
+      <arg name="debug" value="$(arg debug)" />
+    </include>
+  </group>
+
+  <param name="robot_description" command="$(find xacro)/xacro $(find robotiq_2f_c2_gripper_visualization)/urdf/robotiq_c2_model.xacro" />
+
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robotiq_2f_c2_gripper_visualization)/visualize.rviz" required="true" />
+  
+  <node name="spawn_hand" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robotiq_c2_model " respawn="false" output="screen" />
+  
+  <rosparam file="$(find robotiq_2f_c2_gripper_visualization)/config/position_controllers.yaml" command="load"/>
+
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" 
+    output="screen" ns="/robotiq_c2_model" args="
+    joint_a1_position_controller joint_a2_position_controller joint_a3_position_controller joint_a4_position_controller joint_a5_position_controller joint_state_controller "/>  
+  
+  <remap from="/joint_states" to="/robotiq_c2_model/joint_states" />
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <rosparam param="source_list">["/robotiq_c2_model/joint_states"]</rosparam>
+  </node>
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 </launch>
