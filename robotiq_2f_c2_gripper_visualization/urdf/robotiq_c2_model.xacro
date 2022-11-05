@@ -6,6 +6,6 @@
  -->
 
 <robot name="robotiq_c2_model" xmlns:xacro="http://ros.org/wiki/xacro">
-    <xacro:include filename="$(find robotiq_2f_c2_gripper_visualization)/urdf/robotiq_c2_model_macro.xacro" />
-    <xacro:robotiq_c2_model prefix=""/>
+    <xacro:include filename="$(find robotiq_2f_c2_gripper_visualization)/urdf/robotic_c2_transmission.xacro" />
+    <xacro:robotiq_c2_model_gazebo prefix=""/>
 </robot>
